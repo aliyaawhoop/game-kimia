@@ -1,0 +1,547 @@
+import { useState, useEffect } from 'react';
+
+// Game data for carbon compounds
+const carbonCompoundsData = [
+  {
+    id: 1,
+    name: "Methane",
+    formula: "CH₄",
+    structure: "H-C-H\n|\nH-H",
+    category: "Alkane",
+    description: "The simplest alkane, a colorless, odorless gas. Main component of natural gas.",
+    carbonCount: 1,
+    hybridization: "sp³",
+    properties: "Highly flammable, greenhouse gas",
+    hint: "The simplest hydrocarbon with one carbon atom."
+  },
+  {
+    id: 2,
+    name: "Ethane",
+    formula: "C₂H₆",
+    structure: "H H\n|\n|H-C-C-H\n|\n|H H",
+    category: "Alkane",
+    description: "A colorless, odorless gas found in natural gas.",
+    carbonCount: 2,
+    hybridization: "sp³",
+    properties: "Flammable, used in production of ethylene",
+    hint: "The second member of the alkane series with formula C₂H₆."
+  },
+  {
+    id: 3,
+    name: "Ethene (Ethylene)",
+    formula: "C₂H₄",
+    structure: "H H\n|\n|C=C\n|\n|H H",
+    category: "Alkene",
+    description: "The simplest alkene, contains a carbon-carbon double bond.",
+    carbonCount: 2,
+    hybridization: "sp²",
+    properties: "Used in production of polyethylene, fruit ripening agent",
+    hint: "Contains a carbon-carbon double bond and is used to ripen fruits."
+  },
+  {
+    id: 4,
+    name: "Ethyne (Acetylene)",
+    formula: "C₂H₂",
+    structure: "H-C≡C-H",
+    category: "Alkyne",
+    description: "The simplest alkyne, contains a carbon-carbon triple bond.",
+    carbonCount: 2,
+    hybridization: "sp",
+    properties: "Used in welding, highly flammable",
+    hint: "Contains a triple bond and is commonly used in welding torches."
+  },
+  {
+    id: 5,
+    name: "Propane",
+    formula: "C₃H₈",
+    structure: "H H H\n|\n| |\nH-C-C-C-H\n|\n| |\nH H H",
+    category: "Alkane",
+    description: "A three-carbon alkane, used as fuel for barbecues and heating.",
+    carbonCount: 3,
+    hybridization: "sp³",
+    properties: "Stored as liquid under pressure, used as fuel",
+    hint: "A common fuel for grills with three carbon atoms."
+  },
+  {
+    id: 6,
+    name: "Benzene",
+    formula: "C₆H₆",
+    structure: "Hexagonal ring with alternating double bonds",
+    category: "Aromatic",
+    description: "The simplest aromatic hydrocarbon with a ring of six carbon atoms.",
+    carbonCount: 6,
+    hybridization: "sp²",
+    properties: "Sweet smell, carcinogenic, resonance structure",
+    hint: "A hexagonal ring with delocalized electrons and formula C₆H₆."
+  },
+  {
+    id: 7,
+    name: "Methanol",
+    formula: "CH₃OH",
+    structure: "H\n|\nH-C-OH\n|\nH",
+    category: "Alcohol",
+    description: "The simplest alcohol, also known as wood alcohol.",
+    carbonCount: 1,
+    hybridization: "sp³",
+    properties: "Toxic if consumed, used as solvent and fuel",
+    hint: "The simplest alcohol, sometimes called wood alcohol."
+  },
+  {
+    id: 8,
+    name: "Ethanol",
+    formula: "C₂H₅OH",
+    structure: "H H\n|\n|\nH-C-C-OH\n|\n|\nH H",
+    category: "Alcohol",
+    description: "Found in alcoholic beverages, used as antiseptic and fuel.",
+    carbonCount: 2,
+    hybridization: "sp³",
+    properties: "Intoxicating when consumed, flammable",
+    hint: "The alcohol found in alcoholic beverages."
+  },
+  {
+    id: 9,
+    name: "Formaldehyde",
+    formula: "CH₂O",
+    structure: "O\n||\nH-C-H",
+    category: "Aldehyde",
+    description: "The simplest aldehyde, used in preservatives and industrial processes.",
+    carbonCount: 1,
+    hybridization: "sp²",
+    properties: "Pungent odor, preservative, carcinogenic",
+    hint: "The simplest aldehyde, used in preserving biological specimens."
+  },
+  {
+    id: 10,
+    name: "Acetic Acid",
+    formula: "CH₃COOH",
+    structure: "H O\n|\n||\nH-C-C-OH\n|\nH",
+    category: "Carboxylic Acid",
+    description: "Found in vinegar, has a sour taste.",
+    carbonCount: 2,
+    hybridization: "sp³/sp²",
+    properties: "Sour taste, weak acid, soluble in water",
+    hint: "The main component of vinegar."
+  },
+  {
+    id: 11,
+    name: "Acetone",
+    formula: "C₃H₆O",
+    structure: "H H H\n|\n| |\nH-C-C-C-H\n|\n||\nH O",
+    category: "Ketone",
+    description: "The simplest ketone, used as a solvent in nail polish remover.",
+    carbonCount: 3,
+    hybridization: "sp²",
+    properties: "Volatile, good solvent, sweet smell",
+    hint: "A common solvent in nail polish remover."
+  },
+  {
+    id: 12,
+    name: "Glucose",
+    formula: "C₆H₁₂O₆",
+    structure: "Complex ring structure",
+    category: "Carbohydrate",
+    description: "A simple sugar and important energy source in living organisms.",
+    carbonCount: 6,
+    hybridization: "sp³",
+    properties: "Sweet taste, soluble in water, exists in multiple forms",
+    hint: "The most common monosaccharide and a key energy source for cells."
+  }
+];
+
+// Game modes
+const GAME_MODES = {
+  IDENTIFY_COMPOUND: 'Identify Compound',
+  FORMULA_CHALLENGE: 'Formula Challenge',
+  CATEGORY_MATCH: 'Match Category',
+  CARBON_COUNT: 'Carbon Count'
+};
+
+// Category colors for visual reference
+const CATEGORY_COLORS = {
+  'Alkane': '#ffb74d',
+  'Alkene': '#ffd54f',
+  'Alkyne': '#fff176',
+  'Aromatic': '#aed581',
+  'Alcohol': '#4fc3f7',
+  'Aldehyde': '#4dd0e1',
+  'Carboxylic Acid': '#9575cd',
+  'Ketone': '#ba68c8',
+  'Carbohydrate': '#f06292'
+};
+
+// Utility function to shuffle array
+const shuffleArray = (array) => {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+};
+
+export default function CarbonCompoundsGame() {
+  const [gameMode, setGameMode] = useState(GAME_MODES.IDENTIFY_COMPOUND);
+  const [score, setScore] = useState(0);
+  const [highScore, setHighScore] = useState(0);
+  const [currentQuestion, setCurrentQuestion] = useState(null);
+  const [options, setOptions] = useState([]);
+  const [selectedAnswer, setSelectedAnswer] = useState(null);
+  const [isCorrect, setIsCorrect] = useState(null);
+  const [showExplanation, setShowExplanation] = useState(false);
+  const [gameStarted, setGameStarted] = useState(false);
+  const [showReference, setShowReference] = useState(false);
+  const [usedHint, setUsedHint] = useState(false);
+  const [showHint, setShowHint] = useState(false);
+
+  // Generate a new question based on the game mode
+  const generateQuestion = () => {
+    const randomCompound = carbonCompoundsData[Math.floor(Math.random() * carbonCompoundsData.length)];
+    let questionOptions = [];
+    
+    switch (gameMode) {
+      case GAME_MODES.IDENTIFY_COMPOUND:
+        // Show formula, identify compound name
+        setCurrentQuestion({
+          question: `What is the name of the compound with formula ${randomCompound.formula}?`,
+          answer: randomCompound.name,
+          compound: randomCompound
+        });
+        
+        // Create options including the correct answer
+        questionOptions = shuffleArray(
+          [randomCompound.name].concat(
+            shuffleArray(carbonCompoundsData.filter(c => c.name !== randomCompound.name))
+              .slice(0, 3)
+              .map(c => c.name)
+          )
+        );
+        break;
+        
+      case GAME_MODES.FORMULA_CHALLENGE:
+        // Show name, identify formula
+        setCurrentQuestion({
+          question: `What is the chemical formula for ${randomCompound.name}?`,
+          answer: randomCompound.formula,
+          compound: randomCompound
+        });
+        
+        // Create options including the correct answer
+        questionOptions = shuffleArray(
+          [randomCompound.formula].concat(
+            shuffleArray(carbonCompoundsData.filter(c => c.formula !== randomCompound.formula))
+              .slice(0, 3)
+              .map(c => c.formula)
+          )
+        );
+        break;
+        
+      case GAME_MODES.CATEGORY_MATCH:
+        // Show compound, identify category
+        setCurrentQuestion({
+          question: `Which functional group category does ${randomCompound.name} (${randomCompound.formula}) belong to?`,
+          answer: randomCompound.category,
+          compound: randomCompound
+        });
+        
+        // Create options including the correct answer
+        const uniqueCategories = [...new Set(carbonCompoundsData.map(c => c.category))];
+        questionOptions = shuffleArray(
+          [randomCompound.category].concat(
+            shuffleArray(uniqueCategories.filter(c => c !== randomCompound.category))
+              .slice(0, 3)
+          )
+        );
+        break;
+        
+      case GAME_MODES.CARBON_COUNT:
+        // Show compound, identify number of carbon atoms
+        setCurrentQuestion({
+          question: `How many carbon atoms are in ${randomCompound.name} (${randomCompound.formula})?`,
+          answer: String(randomCompound.carbonCount),
+          compound: randomCompound
+        });
+        
+        // Create options including the correct answer
+        const possibleCarbonCounts = [...new Set(carbonCompoundsData.map(c => String(c.carbonCount)))];
+        questionOptions = shuffleArray(
+          [String(randomCompound.carbonCount)].concat(
+            shuffleArray(possibleCarbonCounts.filter(c => c !== String(randomCompound.carbonCount)))
+              .slice(0, 3)
+          )
+        );
+        break;
+    }
+    
+    setOptions(questionOptions);
+    setSelectedAnswer(null);
+    setIsCorrect(null);
+    setShowExplanation(false);
+    setShowHint(false);
+    setUsedHint(false);
+  };
+
+  // Start a new game
+  const startGame = () => {
+    setScore(0);
+    setGameStarted(true);
+    generateQuestion();
+  };
+
+  // Handle answer selection
+  const handleAnswer = (answer) => {
+    setSelectedAnswer(answer);
+    const correct = answer === currentQuestion.answer;
+    setIsCorrect(correct);
+    
+    if (correct) {
+      // If they used a hint, they get half points
+      const pointsToAdd = usedHint ? 5 : 10;
+      const newScore = score + pointsToAdd;
+      setScore(newScore);
+      
+      // Update high score if needed
+      if (newScore > highScore) {
+        setHighScore(newScore);
+      }
+    }
+    
+    setShowExplanation(true);
+  };
+
+  // Show hint for current question
+  const handleShowHint = () => {
+    setShowHint(true);
+    setUsedHint(true);
+  };
+
+  // Next question
+  const nextQuestion = () => {
+    generateQuestion();
+  };
+
+  // Generate initial question when game starts
+  useEffect(() => {
+    if (gameStarted) {
+      generateQuestion();
+    }
+  }, [gameMode, gameStarted]);
+
+  const renderReference = () => (
+    <div className="mb-6 p-4 bg-gray-50 rounded-lg overflow-x-auto">
+      <h3 className="text-lg font-semibold mb-2">Carbon Compounds Reference</h3>
+      
+      <div className="mb-4">
+        <h4 className="text-md font-medium">Functional Groups:</h4>
+        <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+          {Object.entries(CATEGORY_COLORS).map(([category, color]) => (
+            <div key={category} className="flex items-center py-1">
+              <div 
+                className="w-4 h-4 mr-2 rounded" 
+                style={{ backgroundColor: color }}
+              ></div>
+              <span className="text-sm">{category}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      
+      <h4 className="text-md font-medium mb-2">Common Carbon Compounds:</h4>
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+        {carbonCompoundsData.slice(0, 8).map(compound => (
+          <div 
+            key={compound.id} 
+            className="p-3 rounded shadow-sm"
+            style={{ backgroundColor: CATEGORY_COLORS[compound.category] + '30' }}
+          >
+            <div className="flex justify-between">
+              <div className="text-sm font-bold">{compound.name}</div>
+              <div className="text-sm font-mono">{compound.formula}</div>
+            </div>
+            <div className="text-xs mt-1">{compound.category}</div>
+          </div>
+        ))}
+      </div>
+      
+      <div className="mt-4">
+        <h4 className="text-md font-medium mb-2">Carbon Hybridization:</h4>
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2 text-sm">
+          <div className="p-2 bg-white rounded">
+            <strong>sp³:</strong> 4 sigma bonds, tetrahedral (109.5°)
+          </div>
+          <div className="p-2 bg-white rounded">
+            <strong>sp²:</strong> 3 sigma bonds, trigonal planar (120°)
+          </div>
+          <div className="p-2 bg-white rounded">
+            <strong>sp:</strong> 2 sigma bonds, linear (180°)
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+
+  return (
+    <div className="flex flex-col items-center p-6 max-w-6xl mx-auto">
+      <h1 className="text-3xl font-bold mb-6">Carbon Compounds Game</h1>
+      
+      {!gameStarted ? (
+        <div className="text-center mb-8 w-full max-w-2xl">
+          <p className="mb-4 text-lg">Test your knowledge of organic chemistry and carbon compounds!</p>
+          <div className="mb-6">
+            <h2 className="text-xl font-semibold mb-2">Game Modes:</h2>
+            <div className="flex flex-wrap justify-center gap-4">
+              {Object.values(GAME_MODES).map(mode => (
+                <button 
+                  key={mode}
+                  onClick={() => setGameMode(mode)}
+                  className={`py-2 px-4 rounded-lg transition-colors ${
+                    gameMode === mode 
+                      ? 'bg-blue-600 text-white' 
+                      : 'bg-blue-100 hover:bg-blue-200 text-blue-800'
+                  }`}
+                >
+                  {mode}
+                </button>
+              ))}
+            </div>
+          </div>
+          <button 
+            onClick={startGame}
+            className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg text-lg transition-colors"
+          >
+            Start Game
+          </button>
+          
+          <div className="mt-8">
+            <button 
+              onClick={() => setShowReference(!showReference)}
+              className="text-blue-600 underline"
+            >
+              {showReference ? 'Hide' : 'Show'} Carbon Compounds Reference
+            </button>
+            
+            {showReference && renderReference()}
+          </div>
+        </div>
+      ) : (
+        <div className="w-full max-w-2xl">
+          <div className="flex justify-between items-center mb-6">
+            <div>
+              <span className="font-semibold">Score:</span> {score}
+            </div>
+            <div>
+              <span className="font-semibold">High Score:</span> {highScore}
+            </div>
+            <div className="flex gap-2">
+              <button
+                onClick={() => {
+                  setGameStarted(false);
+                  setShowReference(false);
+                }}
+                className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded text-sm"
+              >
+                Menu
+              </button>
+              <button
+                onClick={() => setShowReference(!showReference)}
+                className="bg-gray-200 hover:bg-gray-300 px-3 py-1 rounded text-sm"
+              >
+                {showReference ? 'Hide' : 'Show'} Reference
+              </button>
+            </div>
+          </div>
+          
+          {showReference && renderReference()}
+          
+          <div 
+            className="bg-white rounded-lg shadow-md p-6 mb-6"
+            style={{ 
+              borderLeft: currentQuestion?.compound ? 
+                `4px solid ${CATEGORY_COLORS[currentQuestion.compound.category]}` : 
+                'none' 
+            }}
+          >
+            <div className="flex justify-between items-start">
+              <h2 className="text-lg font-semibold mb-4">{currentQuestion?.question}</h2>
+              
+              {!showHint && !showExplanation && (
+                <button
+                  onClick={handleShowHint}
+                  className="text-blue-600 text-sm hover:underline"
+                >
+                  Need a hint?
+                </button>
+              )}
+            </div>
+            
+            {showHint && !showExplanation && (
+              <div className="mb-4 p-3 bg-blue-50 text-blue-800 rounded-md text-sm">
+                <strong>Hint:</strong> {currentQuestion?.compound?.hint}
+                <div className="text-xs mt-1 text-blue-600">
+                  (Using a hint will reduce points for correct answer)
+                </div>
+              </div>
+            )}
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {options.map((option, index) => (
+                <button
+                  key={index}
+                  onClick={() => !selectedAnswer && handleAnswer(option)}
+                  disabled={selectedAnswer !== null}
+                  className={`p-3 rounded-lg text-md font-medium transition-colors ${
+                    selectedAnswer === option
+                      ? isCorrect
+                        ? 'bg-green-500 text-white'
+                        : 'bg-red-500 text-white'
+                      : selectedAnswer !== null && option === currentQuestion.answer
+                        ? 'bg-green-500 text-white'
+                        : 'bg-blue-100 hover:bg-blue-200 text-blue-800'
+                  }`}
+                >
+                  {option}
+                </button>
+              ))}
+            </div>
+            
+            {showExplanation && currentQuestion?.compound && (
+              <div className="mt-6 p-4 bg-gray-50 rounded-lg">
+                <h3 className="text-md font-semibold mb-2">
+                  {isCorrect ? "Correct! ✓" : "Incorrect ✗"}
+                </h3>
+                
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <h4 className="text-sm font-bold">{currentQuestion.compound.name}</h4>
+                    <div className="text-sm font-mono">{currentQuestion.compound.formula}</div>
+                    <div 
+                      className="mt-1 px-2 py-1 text-xs inline-block rounded"
+                      style={{ backgroundColor: CATEGORY_COLORS[currentQuestion.compound.category] }}
+                    >
+                      {currentQuestion.compound.category}
+                    </div>
+                    <div className="mt-2 text-xs">
+                      <div><strong>Carbon atoms:</strong> {currentQuestion.compound.carbonCount}</div>
+                      <div><strong>Hybridization:</strong> {currentQuestion.compound.hybridization}</div>
+                    </div>
+                  </div>
+                  
+                  <div className="text-xs">
+                    <div className="mb-1">{currentQuestion.compound.description}</div>
+                    <div><strong>Properties:</strong> {currentQuestion.compound.properties}</div>
+                  </div>
+                </div>
+                
+                <button
+                  onClick={nextQuestion}
+                  className="mt-4 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded text-sm"
+                >
+                  Next Question
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
